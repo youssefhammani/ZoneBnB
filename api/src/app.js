@@ -8,9 +8,13 @@ const dbMiddleware = require('./middleware/dbMiddleware');
 const app = express();
 dotenv.config();
 
-app.use(cors());
+
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:5173',
+}));
 
 app.use(dbMiddleware);
 
