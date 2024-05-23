@@ -1,15 +1,22 @@
 const express = require('express');
+const download = require('image-downloader');
+const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const download = require('image-downloader');
 const multer = require('multer');
+// const sharp = require('sharp');
+
 const User = require('../models/userModel');
 const config = require('../../config/config');
 
+
 const app = express();
+
 app.use(express.json());
 app.use(cookieParser());
+
+
 
 
 /**
@@ -145,26 +152,27 @@ const logout = async (req, res) => {
     res.cookie('token', '').json(true);
 }
 
-const uploadByLink = async (req, res) => {
-    const {
-        link
-    } = req.body;
+// const uploadByLink = async (req, res) => {
+//     const {
+//         link
+//     } = req.body;
 
-    // npm i --save image-downloader
-    const newName = 'photo' + Data.now() + '.jpg';
-    download.image({
-        url: link,
-        dest: __dirname + '/uploads/' + newName,
-    });
-    res.json(newName);
-}
+//     const uploadPath = path.join(__dirname, '..', '..', 'uploads/');
+//     console.log(uploadPath);
+//     const newName = 'photo' + Date.now() + '.jpg';
 
-const photosMiddleware = multer({
-    dest: '/tmp'
-});
-const upload = (req, res) => {
-    // npm i multer
-}
+//     download.image({
+//         url: link,
+//         dest: uploadPath + newName,
+//     });
+//     res.json(newName);
+// }
+
+
+// const photosMiddleware = multer({
+//     dest: '/tmp'
+// });
+const upload = (req, res) => {}
 
 
 module.exports = {
@@ -172,6 +180,5 @@ module.exports = {
     login,
     profile,
     logout,
-    uploadByLink,
     upload
 };

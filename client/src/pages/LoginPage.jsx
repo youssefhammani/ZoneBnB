@@ -19,7 +19,6 @@ export default function LoginPage() {
                 password
             });
             setUser(data);
-            console.log(data);
             setRedirect(true);
         } catch (error) {
             console.error(error);

@@ -38,33 +38,36 @@ export default function PlacePage() {
         );
     }
 
-    const addPhotoByLink = (ev) => {
+    
+    const addPhotoByLink = async (ev) => {
         ev.preventDefault();
-        const { data: filename } = axios.post('upload-by-link', { link: photoLink })
-        setAddedPhotos(prev => {
-            return [...prev, filename];
-        })
-        setPhotoLink('');
-    }
-
-    const uploadPhoto = (ev) => {
-        ev.preventDefault();
-
-        const files = ev.target.files;
-        const data = new FormData();
-        for (let index = 0; index < array.length; index++) {
-            data.set('photos', files[index]);
-
+        try {
+            const { data: filename } = await axios.post('/upload-by-link', { link: photoLink });
+            setAddedPhotos(prev => [...prev, filename]);
+            setPhotoLink('');
+        } catch (error) {
+            console.error('Error uploading photo:', error);
         }
-        axios.post('/upload', data, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        }).then(response => {
-            const { data: filename } = response;
-            setAddedPhotos(prev => {
-                return [...prev, filename];
-            })
-        })
     }
+
+    // const uploadPhoto = (ev) => {
+    //     ev.preventDefault();
+
+    //     const files = ev.target.files;
+    //     const data = new FormData();
+    //     for (let index = 0; index < array.length; index++) {
+    //         data.set('photos', files[index]);
+
+    //     }
+    //     axios.post('/upload', data, {
+    //         headers: { 'Content-Type': 'multipart/form-data' }
+    //     }).then(response => {
+    //         const { data: filename } = response;
+    //         setAddedPhotos(prev => {
+    //             return [...prev, filename];
+    //         })
+    //     })
+    // }
 
 
     return (
@@ -104,13 +107,16 @@ export default function PlacePage() {
                             <button onClick={addPhotoByLink} className="bg-gray-200 px-4 rounded-2xl">Add&nbsp;photo</button>
                         </div>
                         <div className="mt-2 grid gap-2 grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                            {addedPhotos.length > 0 && addedPhotos.map(link => (
-                                <div className="">
-                                    <img className="rounded-2xl" src={'http://localhost:3000/uploads' + link} alt="" />
+                            {addedPhotos.length > 0 && addedPhotos.map((link, index) => (
+                                <div key={index}>
+                                    <img className="rounded-2xl"
+                                        src={`http://localhost:3000/uploads/${link}`}
+                                        alt={`Uploaded ${index}`}
+                                    />
                                 </div>
                             ))}
                             <label className="cursor-pointer flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-2 text-2xl text-gray-600">
-                                <input onChange={uploadPhoto} type="file" className="hidden" />
+                                <input type="file" className="hidden" />
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
                                     <path fillRule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
                                 </svg>
