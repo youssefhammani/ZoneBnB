@@ -1,13 +1,11 @@
 const express = require('express');
-const download = require('image-downloader');
-const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const multer = require('multer');
 // const sharp = require('sharp');
 
 const User = require('../models/userModel');
+const Place = require('../models/PlaceModel');
 const config = require('../../config/config');
 
 
@@ -69,6 +67,7 @@ const register = async (req, res) => {
     }
 };
 
+
 const login = async (req, res) => {
     const {
         email,
@@ -102,6 +101,7 @@ const login = async (req, res) => {
         res.json('User not found');
     }
 }
+
 
 const profile = async (req, res) => {
     const {
@@ -148,6 +148,7 @@ const profile = async (req, res) => {
     });
 }
 
+
 const logout = async (req, res) => {
     res.cookie('token', '').json(true);
 }
@@ -169,10 +170,195 @@ const logout = async (req, res) => {
 // }
 
 
-// const photosMiddleware = multer({
-//     dest: '/tmp'
-// });
-const upload = (req, res) => {}
+const places = async (req, res) => {
+    const {
+        token
+    } = req.cookies;
+    const {
+        title,
+        address,
+        addedPhotos,
+        description,
+        perks,
+        extraInfo,
+        checkIn,
+        checkOut,
+        maxGuests,
+        price
+    } = req.body;
+
+    if (!token) {
+        return res.status(401).json({
+            message: 'No token provided'
+        });
+    }
+
+    jwt.verify(token, config.jwt.accessTokenSecret, async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({
+                message: 'Invalid token'
+            });
+        }
+
+        try {
+            const placeData = await Place.create({
+                owner: decoded.id,
+                title,
+                address,
+                photos: addedPhotos,
+                description,
+                perks,
+                extraInfo,
+                checkIn,
+                checkOut,
+                maxGuests,
+                price
+            });
+
+            res.json(placeData);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({
+                message: 'An error occurred'
+            });
+        }
+    });
+}
+
+
+const userPlaces = async (req, res) => {
+    const {
+        token
+    } = req.cookies;
+
+    if (!token) {
+        return res.status(401).json({
+            message: 'No token provided'
+        });
+    }
+
+    jwt.verify(token, config.jwt.accessTokenSecret, async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({
+                message: 'Invalid token'
+            });
+        }
+
+        try {
+            const places = await Place.find({
+                owner: decoded.id
+            });
+            if (!places.length) {
+                return res.status(404).json({
+                    message: 'No places found for this user'
+                });
+            }
+
+            res.json(places);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({
+                message: 'An error occurred'
+            });
+        }
+    });
+}
+
+
+const getPlacesById = async (req, res) => {
+    const {
+        id
+    } = req.params;
+    const place = await Place.findById(id);
+    if (!place) {
+        return res.status(404).json({
+            message: 'Place not found'
+        });
+    }
+    res.json(place);
+}
+
+
+// const createPlace = async (req, res) => {
+
+// }
+
+
+const updatePlace = async (req, res) => {
+    const {
+        token
+    } = req.cookies;
+    const {
+        id,
+        title,
+        address,
+        addedPhotos,
+        description,
+        perks,
+        extraInfo,
+        checkIn,
+        checkOut,
+        maxGuests,
+        price
+    } = req.body;
+
+    if (!token) {
+        return res.status(401).json({
+            message: 'No token provided'
+        });
+    }
+
+    jwt.verify(token, config.jwt.accessTokenSecret, async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({
+                message: 'Invalid token'
+            });
+        }
+
+        try {
+            const placeData = await Place.findById(req.params.id);
+            if (!placeData) {
+                return res.status(404).json({
+                    message: 'Place not found'
+                });
+            }
+
+            if (placeData.owner.toString() !== decoded.id) {
+                return res.status(401).json({
+                    message: 'Unauthorized'
+                });
+            }
+
+            placeData.set({
+                title,
+                address,
+                photos: addedPhotos,
+                description,
+                perks,
+                extraInfo,
+                checkIn,
+                checkOut,
+                maxGuests,
+                price
+            });
+
+            const updatedPlace = await placeData.save();
+
+            res.json(updatedPlace);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({
+                message: 'An error occurred'
+            });
+        }
+    });
+}
+
+const getPlaces = async (req, res) => {
+    res.json(await Place.find());
+}
+
+
 
 
 module.exports = {
@@ -180,5 +366,10 @@ module.exports = {
     login,
     profile,
     logout,
-    upload
+    places,
+    userPlaces,
+    getPlacesById,
+    // createPlace,
+    updatePlace,
+    getPlaces,
 };
