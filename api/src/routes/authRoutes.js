@@ -12,6 +12,8 @@ router.get('/user-places', authController.userPlaces);
 router.get('/places/:id', authController.getPlacesById);
 router.put('/places/:id', authController.updatePlace);
 router.get('/places', authController.getPlaces);
+router.post('/bookings', authController.creatBooking);
+router.get('/bookings', authController.getBookings);
 // router.post('/upload-by-link', authController.uploadByLink);
 // router.post('/upload', authController.upload);
 // router.get('/logout', authController.logout);

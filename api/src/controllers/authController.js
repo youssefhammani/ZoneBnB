@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 
 const User = require('../models/userModel');
 const Place = require('../models/PlaceModel');
+const Booking = require('../models/Booking')
 const config = require('../../config/config');
 
 
@@ -168,6 +169,15 @@ const logout = async (req, res) => {
 //     });
 //     res.json(newName);
 // }
+
+function getUserDataFromReq(req) {
+    return new Promise((resolve, reject) => {
+        jwt.verify(req.cookies.token, config.jwt.accessTokenSecret, {}, async (err, userData) => {
+            if (err) throw err;
+            resolve(userData);
+        });
+    });
+}
 
 
 const places = async (req, res) => {
@@ -354,8 +364,46 @@ const updatePlace = async (req, res) => {
     });
 }
 
+
 const getPlaces = async (req, res) => {
     res.json(await Place.find());
+}
+
+
+const creatBooking = async (req, res) => {
+    const userData = await getUserDataFromReq(req);
+    const {
+        place,
+        checkIn,
+        checkOut,
+        numberOfGuests,
+        name,
+        phone,
+        price,
+    } = req.body;
+
+    Booking.create({
+        place,
+        checkIn,
+        checkOut,
+        numberOfGuests,
+        name,
+        phone,
+        price,
+        user: userData.id,
+    }).then((doc) => {
+        res.json(doc);
+    }).catch((err) => {
+        throw err;
+    });
+}
+
+
+const getBookings = async (req, res) => {
+    const userData = await getUserDataFromReq(req);
+    res.json(await Booking.find({
+        user: userData.id
+    }).populate('place'));
 }
 
 
@@ -372,4 +420,6 @@ module.exports = {
     // createPlace,
     updatePlace,
     getPlaces,
+    creatBooking,
+    getBookings,
 };
